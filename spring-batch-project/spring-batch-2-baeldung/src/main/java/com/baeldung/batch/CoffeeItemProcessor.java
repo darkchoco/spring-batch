@@ -20,5 +20,4 @@ public class CoffeeItemProcessor implements ItemProcessor<Coffee, Coffee> {
 
         return transformedCoffee;
     }
-
 }

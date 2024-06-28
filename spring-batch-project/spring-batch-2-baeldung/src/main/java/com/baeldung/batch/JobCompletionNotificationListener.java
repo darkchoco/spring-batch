@@ -28,7 +28,7 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
 
             String query = "SELECT brand, origin, characteristics FROM coffee";
             jdbcTemplate.query(query, (rs, row) -> new Coffee(rs.getString(1), rs.getString(2), rs.getString(3)))
-                .forEach(coffee -> LOGGER.info("Found < {} > in the database.", coffee));
+                    .forEach(coffee -> LOGGER.info("Found < {} > in the database.", coffee));
         }
     }
 }
