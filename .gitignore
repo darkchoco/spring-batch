@@ -1,0 +1,53 @@
+# IntelliJ
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# STS
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Maven
+log/
+target/
+
+# Compiled class file
+*.class
+
+# Log file
+*.log
+
+# Maven, Gradle
+*.mvn/
+*.gradle/
+
+# Package Files
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# etc.
+tmp/
+node_modules/
+_src/
