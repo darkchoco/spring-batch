@@ -17,8 +17,11 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>17</java.version>
         <lombok.version>1.18.32</lombok.version>
+        <!-- 일단 뭐든 지정해야 build시 오류가 발생하지 않는다 -->
+        <start-class>com.baeldung.batch.SpringBootBatchProcessingApplication</start-class>
     </properties>
 
+    <!-- 아래 dependency는 parent에서 관리 -->
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -40,5 +43,6 @@
 
     <modules>
         <module>spring-batch-2-baeldung</module>
+        <module>naras-data</module>
     </modules>
 </project>
