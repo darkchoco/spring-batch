@@ -1,4 +1,7 @@
+-- 종속 테이블을 먼저 삭제하여 두 테이블을 모두 삭제합니다
+DROP TABLE IF EXISTS country_capital;
 DROP TABLE IF EXISTS country CASCADE;
+
 CREATE TABLE country
 (
     code           VARCHAR(10) PRIMARY KEY,
@@ -11,12 +14,10 @@ CREATE TABLE country
     google_map_url VARCHAR(255)
 );
 
-DROP TABLE IF EXISTS country_capital;
 CREATE TABLE country_capital
 (
-    country_code VARCHAR(10),
-    capital      VARCHAR(100),
-    PRIMARY KEY (country_code, capital),
-    FOREIGN KEY (country_code) REFERENCES country (code)
+    id      INT PRIMARY KEY,
+    code    VARCHAR(10),
+    capital VARCHAR(100),
+    FOREIGN KEY (code) REFERENCES country (code)
 );
-
