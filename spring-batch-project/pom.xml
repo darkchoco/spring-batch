@@ -44,5 +44,6 @@
     <modules>
         <module>spring-batch-2-baeldung</module>
         <module>naras-data</module>
+        <module>bank-statement</module>
     </modules>
 </project>
