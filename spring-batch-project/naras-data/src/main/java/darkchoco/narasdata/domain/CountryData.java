@@ -1,32 +1,21 @@
-package darkchoco.narasdata;
+package darkchoco.narasdata.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 import java.util.List;
 
 @AllArgsConstructor
-@NoArgsConstructor
+@RequiredArgsConstructor
 @ToString
+@Setter
 @Getter
-@Entity
-@Table(name = "country")
-public class Country {
-
-    @Id
+public class CountryData {
     private String code;
     private String commonName;
     private String officialName;
     private String flagEmoji;
     private String flagImg;
-    @ElementCollection
     private List<String> capital;
     private String region;
     private int population;

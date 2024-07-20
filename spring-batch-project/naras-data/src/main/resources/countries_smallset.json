@@ -1,0 +1,46 @@
+[
+  {
+    "code": "DEU",
+    "commonName": "Germany",
+    "officialName": "Federal Republic of Germany",
+    "flagEmoji": "🇩🇪",
+    "flagImg": "https://flagcdn.com/w320/de.png",
+    "capital": ["Berlin","Frankfurt","München","Hamburg","Koeln"],
+    "region": "Europe",
+    "population": 83240525,
+    "googleMapURL": "https://goo.gl/maps/mD9FBMq1nvXUBrkv6"
+  },
+  {
+    "code": "GBR",
+    "commonName": "United Kingdom",
+    "officialName": "United Kingdom of Great Britain and Northern Ireland",
+    "flagEmoji": "🇬🇧",
+    "flagImg": "https://flagcdn.com/w320/gb.png",
+    "capital": ["London"],
+    "region": "Europe",
+    "population": 67215293,
+    "googleMapURL": "https://goo.gl/maps/FoDtc3UKMkFsXAjHA"
+  },
+  {
+    "code": "KOR",
+    "commonName": "South Korea",
+    "officialName": "Republic of Korea",
+    "flagEmoji": "🇰🇷",
+    "flagImg": "https://flagcdn.com/w320/kr.png",
+    "capital": ["Seoul","Busan","Incheon"],
+    "region": "Asia",
+    "population": 51780579,
+    "googleMapURL": "https://goo.gl/maps/7ecjaJXefjAQhxjGA"
+  },
+  {
+    "code": "USA",
+    "commonName": "United States",
+    "officialName": "United States of America",
+    "flagEmoji": "🇺🇸",
+    "flagImg": "https://flagcdn.com/w320/us.png",
+    "capital": ["Washington, D.C."],
+    "region": "Americas",
+    "population": 329484123,
+    "googleMapURL": "https://goo.gl/maps/e8M246zY4BSjkjAv6"
+  }
+]

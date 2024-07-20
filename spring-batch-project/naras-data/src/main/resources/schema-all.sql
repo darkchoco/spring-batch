@@ -16,7 +16,7 @@ CREATE TABLE country
 
 CREATE TABLE country_capital
 (
-    id      INT PRIMARY KEY,
+    id      SERIAL PRIMARY KEY,
     code    VARCHAR(10),
     capital VARCHAR(100),
     FOREIGN KEY (code) REFERENCES country (code)
