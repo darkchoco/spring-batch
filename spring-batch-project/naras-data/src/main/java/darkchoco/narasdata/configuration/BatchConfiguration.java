@@ -27,7 +27,8 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
 @Configuration
 public class BatchConfiguration {
@@ -88,15 +89,13 @@ public class BatchConfiguration {
 
     @Bean
     public CompositeItemWriter<CountryData> compositeItemWriter() {
+        // countryCapitalDelegatingItemWriter 대신 countryCapitalItemWriter를 직접 사용
+        // countryCapitalDelegatingItemWriter는 내부에서 countryCapitalItemWriter를 호출하므로 중복 호출 방지
         return new CompositeItemWriterBuilder<CountryData>()
-                .delegates(Arrays.asList(countryItemWriter(), countryCapitalDelegatingItemWriter(countryCapitalItemWriter())))
+                .delegates(countryItemWriter(), countryCapitalDelegatingItemWriter(countryCapitalItemWriter()))
                 .build();
-//        List<ItemWriter<? super CountryData>> writers = Arrays.asList(countryItemWriter(), countryCapitalItemWriter());
-//        CompositeItemWriter<CountryData> compositeItemWriter = new CompositeItemWriter<>();
-//        compositeItemWriter.setDelegates(writers);
-//        return compositeItemWriter;
     }
-
+    
     @Bean
     public JdbcBatchItemWriter<CountryData> countryItemWriter() {
         return new JdbcBatchItemWriterBuilder<CountryData>()
@@ -122,38 +121,68 @@ public class BatchConfiguration {
 
     @Bean
     public JdbcBatchItemWriter<CountryCapitalData> countryCapitalItemWriter() {
-        return new JdbcBatchItemWriterBuilder<CountryCapitalData>()
-                .beanMapped()
-                .sql("""
-                        INSERT INTO country_capital (code, capital)
-                        VALUES (?, ?)
-                        """)
-                // JdbcBatchItemWriter는 단일 SQL 문을 하나의 항목에 대해 실행하도록 설계되었다. 따라서 for 루프 내에서
-                // ps.addBatch()를 호출하면 반복적으로 배치에 항목을 추가하게 되지만, JdbcBatchItemWriter는 이를
-                // 올바르게 처리하지 못할 수 있다. 아래 코드는 주석처리 한다.
-//                .itemPreparedStatementSetter((countryData, ps) -> {
-//                    for (String capital : countryData.getCapital()) {
-//                        ps.setString(1, countryData.getCode());
-//                        ps.setString(2, capital);
-//                        ps.addBatch();  // Add batch for each capital
-//                    }
-//                })
-                .itemPreparedStatementSetter((countryCapitalData, ps) -> {
-                    ps.setString(1, countryCapitalData.getCode());
-                    ps.setString(2, countryCapitalData.getCapital());
-                })
-                .dataSource(dataSource)
-                .build();
+        JdbcBatchItemWriter<CountryCapitalData> writer = new JdbcBatchItemWriter<>();
+        writer.setDataSource(dataSource);
+        writer.setSql("INSERT INTO country_capital (capital, country_code) VALUES (?, ?)");
+        
+        writer.setItemPreparedStatementSetter((countryCapitalData, ps) -> {
+            String countryCode = countryCapitalData.getCountryData() != null ? countryCapitalData.getCountryData().getCode() : "UNKNOWN";
+
+            ps.setString(1, countryCapitalData.getCapital());
+            ps.setString(2, countryCode);
+        });
+        
+        writer.setAssertUpdates(false);
+        
+        // Verify the configuration
+        try {
+            writer.afterPropertiesSet();
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to initialize JdbcBatchItemWriter", e);
+        }
+        
+        return writer;
     }
 
     @Bean
     public ItemWriter<CountryData> countryCapitalDelegatingItemWriter(JdbcBatchItemWriter<CountryCapitalData> countryCapitalItemWriter) {
         return chunk -> {
+            List<CountryCapitalData> allCapitals = new ArrayList<>();
+            System.out.println("Processing chunk with " + chunk.size() + " items");
+            
             for (CountryData item : chunk) {
-                for (String capital : item.getCapital()) {
-                    CountryCapitalData capitalData = new CountryCapitalData(item.getCode(), capital);
-                    countryCapitalItemWriter.write(new Chunk<>(capitalData));
+                System.out.println("Processing country: " + item.getCode() + " - " + item.getCommonName());
+                
+                // Process capital list from JSON
+                if (item.getCapital() != null && !item.getCapital().isEmpty()) {
+                    System.out.println("  - Found " + item.getCapital().size() + " capitals in JSON");
+                    for (String capital : item.getCapital()) {
+                        System.out.println("    - Processing capital: " + capital);
+                        CountryCapitalData capitalData = new CountryCapitalData();
+//                        String id = item.getCode() + "_" + capital.hashCode();
+//                        capitalData.setId(id);
+                        capitalData.setCapital(capital);
+                        capitalData.setCountryData(item);
+                        allCapitals.add(capitalData);
+                    }
+                } else {
+                    System.out.println("  - No capitals found in JSON");
                 }
+            }
+            
+            // Write all new capital data
+            System.out.println("Total CountryCapitalData to write: " + allCapitals.size());
+            if (!allCapitals.isEmpty()) {
+                try {
+                    countryCapitalItemWriter.write(new Chunk<>(allCapitals));
+                    System.out.println("Successfully wrote " + allCapitals.size() + " CountryCapitalData records");
+                } catch (Exception e) {
+                    System.err.println("Error writing CountryCapitalData: " + e.getMessage());
+                    e.printStackTrace();
+                    throw e; // Re-throw to fail the step if there's an error
+                }
+            } else {
+                System.out.println("No capital data to write");
             }
         };
     }
