@@ -5,6 +5,7 @@ import darkchoco.narasdata.batch.CountryCapitalProcessor;
 import darkchoco.narasdata.batch.JobCompletionNotificationListener;
 import darkchoco.narasdata.domain.CountryCapitalData;
 import darkchoco.narasdata.domain.CountryData;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;
@@ -30,6 +31,7 @@ import javax.sql.DataSource;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Configuration
 public class BatchConfiguration {
 
@@ -89,8 +91,7 @@ public class BatchConfiguration {
 
     @Bean
     public CompositeItemWriter<CountryData> compositeItemWriter() {
-        // countryCapitalDelegatingItemWriter 대신 countryCapitalItemWriter를 직접 사용
-        // countryCapitalDelegatingItemWriter는 내부에서 countryCapitalItemWriter를 호출하므로 중복 호출 방지
+        // countryCapitalDelegatingItemWriter는 내부에서 countryCapitalItemWriter를 호출한다
         return new CompositeItemWriterBuilder<CountryData>()
                 .delegates(countryItemWriter(), countryCapitalDelegatingItemWriter(countryCapitalItemWriter()))
                 .build();
@@ -148,41 +149,38 @@ public class BatchConfiguration {
     public ItemWriter<CountryData> countryCapitalDelegatingItemWriter(JdbcBatchItemWriter<CountryCapitalData> countryCapitalItemWriter) {
         return chunk -> {
             List<CountryCapitalData> allCapitals = new ArrayList<>();
-            System.out.println("Processing chunk with " + chunk.size() + " items");
+            log.info("Processing chunk with {} items", chunk.size());
             
             for (CountryData item : chunk) {
-                System.out.println("Processing country: " + item.getCode() + " - " + item.getCommonName());
+                log.info("Processing country: {} - {}", item.getCode(), item.getCommonName());
                 
                 // Process capital list from JSON
                 if (item.getCapital() != null && !item.getCapital().isEmpty()) {
-                    System.out.println("  - Found " + item.getCapital().size() + " capitals in JSON");
+                    log.info("  - Found {} capitals in JSON", item.getCapital().size());
                     for (String capital : item.getCapital()) {
-                        System.out.println("    - Processing capital: " + capital);
+                        log.info("    - Processing capital: {}", capital);
                         CountryCapitalData capitalData = new CountryCapitalData();
-//                        String id = item.getCode() + "_" + capital.hashCode();
-//                        capitalData.setId(id);
                         capitalData.setCapital(capital);
                         capitalData.setCountryData(item);
                         allCapitals.add(capitalData);
                     }
                 } else {
-                    System.out.println("  - No capitals found in JSON");
+                    log.info("  - No capitals found in JSON");
                 }
             }
             
             // Write all new capital data
-            System.out.println("Total CountryCapitalData to write: " + allCapitals.size());
+            log.info("Total CountryCapitalData to write: {}", allCapitals.size());
             if (!allCapitals.isEmpty()) {
                 try {
                     countryCapitalItemWriter.write(new Chunk<>(allCapitals));
-                    System.out.println("Successfully wrote " + allCapitals.size() + " CountryCapitalData records");
+                    log.info("Successfully wrote {} CountryCapitalData records", allCapitals.size());
                 } catch (Exception e) {
-                    System.err.println("Error writing CountryCapitalData: " + e.getMessage());
-                    e.printStackTrace();
+                    log.error("Error writing CountryCapitalData: {}", e.getMessage());
                     throw e; // Re-throw to fail the step if there's an error
                 }
             } else {
-                System.out.println("No capital data to write");
+                log.info("No capital data to write");
             }
         };
     }
